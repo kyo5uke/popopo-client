@@ -114,6 +114,31 @@ await api.lives.postComment("spaceKey", "liveId", "hello");
 await api.lives.sendReaction("spaceKey", "liveId", { type: "heart" });
 ```
 
+### Algolia検索
+
+```typescript
+// ユーザー検索 (45,000+人)
+const users = await api.searchUsers({ query: "名前", hitsPerPage: 10 });
+
+// 商品検索 (162件)
+const items = await api.searchItems({ query: "", hitsPerPage: 10 });
+
+// ライブ検索
+const lives = await api.searchLives();
+
+// 全件取得（async iterator）
+for await (const item of api.paginateItems()) {
+  console.log(item.name, item.price);
+}
+```
+
+### 内部ユーザーチェック
+
+```typescript
+const internals = await api.getInternalUsers();
+const isInternal = await api.isInternalUser("userId");
+```
+
 ### 低レベルAPI
 
 全エンドポイントは `endpoints` モジュールからルート定義として利用可能。

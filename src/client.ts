@@ -292,6 +292,22 @@ export class Popopo {
     return listDocuments(this.requireToken(), "users", params);
   }
 
+  // 内部ユーザーチェック（maintenance configから取得）
+  async getInternalUsers(): Promise<{ userId: string; note: string }[]> {
+    const config = await this.getAppConfig("maintenance");
+    const raw = config["internal_users"];
+    if (!Array.isArray(raw)) return [];
+    return raw.map((u: Record<string, unknown>) => ({
+      userId: String(u["user_id"] ?? ""),
+      note: String(u["note"] ?? ""),
+    }));
+  }
+
+  async isInternalUser(userId: string): Promise<boolean> {
+    const users = await this.getInternalUsers();
+    return users.some(u => u.userId === userId);
+  }
+
   // Algolia検索
 
   searchUsers(params?: SearchParams): Promise<SearchResult<AlgoliaUser>> {
