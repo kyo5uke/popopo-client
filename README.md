@@ -29,13 +29,13 @@ const api = new Popopo();
 await api.loginAnonymous();
 
 // アカウント作成
-await api.createAccount();
+await api.users.createAccount();
 
 // ホームのスペース一覧
-const home = await api.getHomeSpaces();
+const home = await api.users.getHomeSpaces();
 
 // コイン残高
-const coins = await api.getCoinTransactions();
+const coins = await api.store.getCoinTransactions();
 ```
 
 ### 認証
@@ -94,25 +94,24 @@ const url = api.tsoBuildFileUrl("file-id");
 
 ```typescript
 // TRTC接続情報 (userSig等)
-const conn = await api.getConnectionInfo("spaceKey");
+const conn = await api.spaces.getConnectionInfo("spaceKey");
 
 // スペースに接続
-await api.connectSpace("spaceKey");
+await api.spaces.connectSpace("spaceKey");
 
 // ミュート
-await api.setMuted("spaceKey", true);
+await api.spaces.setMuted("spaceKey", true);
 
 // 切断
-await api.disconnectSpace("spaceKey");
+await api.spaces.disconnectSpace("spaceKey");
 ```
 
 ### ライブ配信
 
 ```typescript
-const lives = await api.getLives("spaceKey");
-const comments = await api.getComments("spaceKey", "liveId");
-await api.postComment("spaceKey", "liveId", { body: "hello" });
-await api.sendReaction("spaceKey", "liveId", { type: "heart" });
+const lives = await api.lives.getLives("spaceKey");
+await api.lives.postComment("spaceKey", "liveId", "hello");
+await api.lives.sendReaction("spaceKey", "liveId", { type: "heart" });
 ```
 
 ### 低レベルAPI
@@ -125,6 +124,7 @@ import { Popopo, endpoints } from "./src/index.ts";
 
 const api = new Popopo();
 await api.loginAnonymous();
+await api.users.createAccount();
 
 // ルート定義から直接呼び出し
 const route = endpoints.spaces.connectionInfo("mySpaceKey");

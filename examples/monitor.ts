@@ -16,7 +16,7 @@ const check = async () => {
 
   for (const { space, live } of home.spaces) {
     if (live) {
-      console.log(`  🔴 ${space.name} - 視聴者: ${live.viewerCount ?? "?"}`);
+      console.log(`  🔴 ${space.name} - 視聴者: ${live.currentCount ?? "?"}`);
     }
   }
 };

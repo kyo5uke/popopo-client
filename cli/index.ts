@@ -145,7 +145,7 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
     case "device":
       if (c2 === "register") return api.device.registerDevice(require(opts, "id"), JSON.parse(require(opts, "data")));
       if (c2 === "unregister") return api.device.unregisterDevice(require(opts, "id"));
-      break;
+      throw new Error("不明なデバイスコマンド: " + c2);
 
     // 通報
     case "report":
@@ -155,26 +155,26 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
     case "vc":
       if (c2 === "token") return api.device.getVirtualCastAccessToken();
       if (c2 === "relay") return api.device.virtualCastApiRelay(JSON.parse(require(opts, "data")));
-      break;
+      throw new Error("不明なvcコマンド: " + c2);
 
     // TSO
     case "tso":
       if (c2 === "exchange") return api.tsoExchangeCode(require(opts, "code"), require(opts, "verifier"));
       if (c2 === "refresh") return api.tsoRefreshToken(require(opts, "token"));
-      break;
+      throw new Error("不明なtsoコマンド: " + c2);
 
     // スタンプ
     case "stamp":
       if (c2 === "press") return api.store.stamp(require(opts, "card-id"));
       if (c2 === "unlock") return api.store.unlockStampLane(require(opts, "card-id"), require(opts, "lane-id"));
       if (c2 === "claim") return api.store.claimStampReward(require(opts, "card-id"), require(opts, "lane-id"), require(opts, "reward-id"));
-      break;
+      throw new Error("不明なスタンプコマンド: " + c2);
 
     // push
     case "push":
       if (c2 === "call") return api.device.sendCallPush(JSON.parse(require(opts, "data")));
       if (c2 === "cancel") return api.device.cancelCallPush(require(opts, "id"));
-      break;
+      throw new Error("不明なpushコマンド: " + c2);
 
     // 低レベル
     case "raw":

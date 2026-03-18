@@ -2,7 +2,7 @@
 
 import type { Route } from "../endpoints.ts";
 import * as ep from "../endpoints.ts";
-import type { ResultResponse, ConnectionInfo, SpaceInvite, CreateSpaceResponse } from "../types.ts";
+import type { ResultResponse, ConnectionInfo, SpaceInvite, CreateSpaceResponse, UpdateSpaceResponse } from "../types.ts";
 
 type Caller = <T>(route: Route, body?: unknown) => Promise<T>;
 
@@ -11,7 +11,7 @@ export function createSpaceMethods(call: Caller) {
     createSpace: (data: Record<string, unknown>): Promise<CreateSpaceResponse> =>
       call(ep.spaces.create(), data),
 
-    updateSpace: (spaceKey: string, data: Record<string, unknown>): Promise<CreateSpaceResponse> =>
+    updateSpace: (spaceKey: string, data: Record<string, unknown>): Promise<UpdateSpaceResponse> =>
       call(ep.spaces.update(spaceKey), data),
 
     getConnectionInfo: (spaceKey: string): Promise<ConnectionInfo> =>

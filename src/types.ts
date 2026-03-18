@@ -158,6 +158,10 @@ export interface CreateSpaceResponse {
   spaceKey: string;
 }
 
+export interface UpdateSpaceResponse {
+  spaceKey: string;
+}
+
 // 認証
 export interface AuthSession {
   idToken: string;
