@@ -362,8 +362,8 @@ export class Popopo {
     return this.call(ep.lives.comments(spaceKey, liveId), {});
   }
 
-  postComment(spaceKey: string, liveId: string, data: Record<string, unknown>) {
-    return this.call(ep.lives.comments(spaceKey, liveId), data);
+  postComment(spaceKey: string, liveId: string, value: string) {
+    return this.call(ep.lives.comments(spaceKey, liveId), { kind: "text", value });
   }
 
   deleteComment(spaceKey: string, liveId: string, commentId: string) {

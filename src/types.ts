@@ -84,12 +84,16 @@ export interface ConnectionInfo {
 
 // ライブ
 export interface LiveInfo {
-  liveId?: string;
-  spaceKey?: string;
-  title?: string;
-  status?: string;
-  viewerCount?: number;
-  startedAt?: string;
+  id: string;
+  spaceKey: string;
+  userId: string;
+  token?: string;
+  genreId?: string;
+  tags?: string[];
+  canEnter?: boolean;
+  currentCount?: number;
+  selectionRecruiting?: boolean;
+  createdAt?: number;
   [key: string]: unknown;
 }
 

@@ -283,7 +283,7 @@ async function handleLive(sub: string | undefined, opts: Record<string, string>)
     case "get":
       return api.getLive(key, liveId!);
     case "comment":
-      return api.postComment(key, liveId!, { body: require(opts, "body") });
+      return api.postComment(key, liveId!, require(opts, "text"));
     case "reaction":
       return api.sendReaction(key, liveId!, { type: opts["type"] ?? "heart" });
     case "power":
