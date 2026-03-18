@@ -1,28 +1,15 @@
 // Firebase Identity Toolkit / SecureToken のラッパー
 // POPOPOはFirebase Authを認証基盤として使っている
 
+import type { AuthSession, PhoneVerificationResult } from "./types.ts";
+
 const FIREBASE_API_KEY = "AIzaSyAmY4T-_U3IGS_TvD5ERQsr2HQsHUmaapc";
 const IDENTITY_TOOLKIT = "https://www.googleapis.com/identitytoolkit/v3/relyingparty";
 const SECURE_TOKEN = "https://securetoken.googleapis.com/v1";
 
-export interface AuthSession {
-  idToken: string;
-  refreshToken: string;
-  localId: string;
-  expiresIn: number;
-  email?: string;
-  displayName?: string;
-  isNewUser?: boolean;
-  providerId?: string;
-}
-
 export interface AuthOptions {
   apiKey?: string;
   fetch?: typeof globalThis.fetch;
-}
-
-export interface PhoneVerificationResult {
-  sessionInfo: string;
 }
 
 function key(opts?: AuthOptions): string {

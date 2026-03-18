@@ -7,7 +7,8 @@ import { readFile, writeFile } from "node:fs/promises";
 import { existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Popopo, type SessionData } from "../src/client.ts";
+import { Popopo } from "../src/client.ts";
+import type { SessionData } from "../src/types.ts";
 
 const SESSION_FILE = resolve(dirname(fileURLToPath(import.meta.url)), "../.session.json");
 

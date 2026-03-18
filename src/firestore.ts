@@ -1,6 +1,8 @@
 // Firestore REST API経由でユーザーのプライベートデータを読む
 // コイン残高とかはAPIじゃなくてFirestoreに直接入ってる
 
+import type { CoinBalance } from "./types.ts";
+
 const FIRESTORE_BASE = "https://firestore.googleapis.com/v1";
 const PROJECT_ID = "popopo-prod";
 
@@ -9,12 +11,6 @@ export interface FirestoreDoc {
   fields: Record<string, unknown>;
   createTime?: string;
   updateTime?: string;
-}
-
-export interface CoinBalance {
-  paid: number;
-  free: number;
-  raw: Record<string, unknown>;
 }
 
 export interface FirestoreOptions {

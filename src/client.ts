@@ -1,4 +1,4 @@
-import type { AuthSession, AuthOptions, PhoneVerificationResult } from "./auth.ts";
+import type { AuthOptions } from "./auth.ts";
 import {
   signInAnonymously, signInWithEmail, signUpWithEmail,
   signInWithCustomToken, signInWithIdp, signInWithEmailLink,
@@ -7,20 +7,21 @@ import {
   lookupAccount, updateFirebaseProfile, unlinkProvider,
   refreshToken,
 } from "./auth.ts";
-import { request, type RequestConfig, type ApiResponse, PopopoApiError } from "./request.ts";
-import { getCoinBalance, getDocument, type CoinBalance, type FirestoreDoc } from "./firestore.ts";
+import { request, type RequestConfig, PopopoApiError } from "./request.ts";
+import { getCoinBalance, getDocument, type FirestoreDoc } from "./firestore.ts";
 import * as tso from "./tso.ts";
-import type { TsoConfig, TsoTokenResponse } from "./tso.ts";
+import type { TsoConfig } from "./tso.ts";
 import type { Route } from "./endpoints.ts";
 import * as ep from "./endpoints.ts";
+import type {
+  AuthSession, SessionData, PhoneVerificationResult, CoinBalance,
+  TsoTokenResponse, ResultResponse, GeoResponse, HomeDisplaySpacesResponse,
+  ConnectionInfo, CoinTransactionsResponse, CoinExpirationsResponse,
+  SpaceInvite, FriendInvite, StoryResponse, ViolationReportResponse,
+  CreateSpaceResponse,
+} from "./types.ts";
 
-export type { ApiResponse, AuthSession, PopopoApiError, CoinBalance, TsoTokenResponse };
-
-export interface SessionData {
-  idToken?: string;
-  refreshToken?: string;
-  localId?: string;
-}
+export { PopopoApiError };
 
 export interface ClientConfig {
   baseUrl?: string;
@@ -223,23 +224,23 @@ export class Popopo {
 
   // ユーザー
 
-  createAccount() {
+  createAccount(): Promise<ResultResponse> {
     return this.call(ep.users.create(), {});
   }
 
-  getProfile() {
+  getProfile(): Promise<ResultResponse> {
     return this.call(ep.users.profile(), {});
   }
 
-  updateProfile(data: Record<string, unknown>) {
+  updateProfile(data: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.users.profile(), data);
   }
 
-  updateProfileIcon(data: Record<string, unknown>) {
+  updateProfileIcon(data: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.users.profileIcon(), data);
   }
 
-  updateProfileLook(data: Record<string, unknown>) {
+  updateProfileLook(data: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.users.profileLook(), data);
   }
 
@@ -251,27 +252,27 @@ export class Popopo {
     return this.call(ep.users.birthday(), { year, month, day });
   }
 
-  getPushSetting() {
+  getPushSetting(): Promise<ResultResponse> {
     return this.call(ep.users.pushSetting(), {});
   }
 
-  updatePushSetting(data: Record<string, unknown>) {
+  updatePushSetting(data: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.users.pushSetting(), data);
   }
 
-  updateTutorial(version: number, step: number, completed: boolean) {
+  updateTutorial(version: number, step: number, completed: boolean): Promise<ResultResponse> {
     return this.call(ep.users.tutorial(), { version, step, completed });
   }
 
-  agreeTerms(kind: "terms-of-service" | "privacy") {
+  agreeTerms(kind: "terms-of-service" | "privacy"): Promise<ResultResponse> {
     return this.call(ep.users.termsAgreements(), { kind });
   }
 
-  getGeo() {
+  getGeo(): Promise<GeoResponse> {
     return this.call(ep.users.geo(), {});
   }
 
-  getHomeSpaces(data: Record<string, unknown> = {}) {
+  getHomeSpaces(data: Record<string, unknown> = {}): Promise<HomeDisplaySpacesResponse> {
     return this.call(ep.users.homeDisplaySpaces(), data);
   }
 
@@ -279,71 +280,71 @@ export class Popopo {
     return this.call(ep.users.byId(userId), {});
   }
 
-  blockUser(userId: string) {
+  blockUser(userId: string): Promise<ResultResponse> {
     return this.call(ep.users.blockUser(userId), {});
   }
 
-  postStory(message: string) {
+  postStory(message: string): Promise<StoryResponse> {
     return this.call(ep.users.stories(), { message });
   }
 
-  createFriendInvite(limit: number, expiredAtSeconds: number) {
+  createFriendInvite(limit: number, expiredAtSeconds: number): Promise<FriendInvite> {
     return this.call(ep.users.friendInvites(), { limit, expiredAtSeconds });
   }
 
   // フォロー
 
-  getFollowers(userId: string) {
+  getFollowers(userId: string): Promise<ResultResponse> {
     return this.call(ep.followers.list(userId), {});
   }
 
-  follow(userId: string) {
+  follow(userId: string): Promise<ResultResponse> {
     return this.call(ep.followers.follow(userId), {});
   }
 
-  unfollow(userId: string) {
+  unfollow(userId: string): Promise<ResultResponse> {
     return this.call(ep.followers.unfollow(userId));
   }
 
   // スペース
 
-  createSpace(data: Record<string, unknown>) {
+  createSpace(data: Record<string, unknown>): Promise<CreateSpaceResponse> {
     return this.call(ep.spaces.create(), data);
   }
 
-  updateSpace(spaceKey: string, data: Record<string, unknown>) {
+  updateSpace(spaceKey: string, data: Record<string, unknown>): Promise<CreateSpaceResponse> {
     return this.call(ep.spaces.update(spaceKey), data);
   }
 
-  getConnectionInfo(spaceKey: string) {
+  getConnectionInfo(spaceKey: string): Promise<ConnectionInfo> {
     return this.call(ep.spaces.connectionInfo(spaceKey), {});
   }
 
-  setBackground(spaceKey: string, background: Record<string, unknown>) {
+  setBackground(spaceKey: string, background: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.spaces.setBackground(spaceKey), { background });
   }
 
-  setBgm(spaceKey: string, bgm: Record<string, unknown>) {
+  setBgm(spaceKey: string, bgm: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.spaces.setBgm(spaceKey), { bgm });
   }
 
-  sendMessage(spaceKey: string, kind: string, value: string) {
+  sendMessage(spaceKey: string, kind: string, value: string): Promise<ResultResponse> {
     return this.call(ep.spaces.messages(spaceKey), { kind, value });
   }
 
-  connectSpace(spaceKey: string, muted = false) {
+  connectSpace(spaceKey: string, muted = false): Promise<ResultResponse> {
     return this.call(ep.spaces.connect(spaceKey), { muted });
   }
 
-  disconnectSpace(spaceKey: string) {
+  disconnectSpace(spaceKey: string): Promise<ResultResponse> {
     return this.call(ep.spaces.disconnect(spaceKey));
   }
 
-  setMuted(spaceKey: string, muted: boolean) {
+  setMuted(spaceKey: string, muted: boolean): Promise<ResultResponse> {
     return this.call(ep.spaces.mute(spaceKey), { muted });
   }
 
-  createSpaceInvite(spaceKey: string, limit: number, expiredAtSeconds: number) {
+  createSpaceInvite(spaceKey: string, limit: number, expiredAtSeconds: number): Promise<SpaceInvite> {
     return this.call(ep.spaces.invites(spaceKey), { limit, expiredAtSeconds });
   }
 
@@ -387,13 +388,13 @@ export class Popopo {
     return this.call(ep.selections.participate(spaceKey, liveId, selectionId), {});
   }
 
-  // コイン (API経由)
+  // コイン (API)
 
-  getCoinTransactions() {
+  getCoinTransactions(): Promise<CoinTransactionsResponse> {
     return this.call(ep.coin.transactions());
   }
 
-  getCoinExpirations() {
+  getCoinExpirations(): Promise<CoinExpirationsResponse> {
     return this.call(ep.coin.upcomingExpirations());
   }
 
@@ -401,7 +402,7 @@ export class Popopo {
     return this.call(ep.coin.reclaimIab(), data);
   }
 
-  // コイン (Firestore経由 - 残高取得)
+  // コイン (Firestore)
 
   async getCoinBalance(): Promise<CoinBalance> {
     return getCoinBalance(this.requireToken(), this.requireUserId());
@@ -421,11 +422,11 @@ export class Popopo {
     return this.call(ep.push.cancelCall(callPushId));
   }
 
-  registerDevice(deviceId: string, data: Record<string, unknown>) {
+  registerDevice(deviceId: string, data: Record<string, unknown>): Promise<ResultResponse> {
     return this.call(ep.push.registerDevice(deviceId), data);
   }
 
-  unregisterDevice(deviceId: string) {
+  unregisterDevice(deviceId: string): Promise<ResultResponse> {
     return this.call(ep.push.unregisterDevice(deviceId));
   }
 
@@ -441,7 +442,7 @@ export class Popopo {
 
   // 通報
 
-  report(data: Record<string, unknown>) {
+  report(data: Record<string, unknown>): Promise<ViolationReportResponse> {
     return this.call(ep.reports.create(), data);
   }
 
@@ -521,30 +522,14 @@ export class Popopo {
     return this.call(ep.users.useFriendInvite(inviteKey), {});
   }
 
-  // セッション保存/復元
-
-  exportSession(): SessionData {
-    return {
-      idToken: this.token,
-      refreshToken: this._refreshToken,
-      localId: this.localId,
-    };
-  }
-
-  importSession(data: SessionData): void {
-    if (data.idToken) {
-      this.setToken(data.idToken, data.refreshToken, data.localId);
-    }
-  }
-
   // TSO (VirtualCast/TheSeedOnline)
 
   async tsoExchangeCode(code: string, codeVerifier: string): Promise<TsoTokenResponse> {
     return tso.exchangeAuthorizationCode(code, codeVerifier, this.tsoConfig);
   }
 
-  async tsoRefreshToken(refreshToken: string): Promise<TsoTokenResponse> {
-    return tso.refreshAccessToken(refreshToken, this.tsoConfig);
+  async tsoRefreshToken(rt: string): Promise<TsoTokenResponse> {
+    return tso.refreshAccessToken(rt, this.tsoConfig);
   }
 
   async tsoGetFileStatus(fileId: string, accessToken: string): Promise<Record<string, unknown>> {
@@ -553,5 +538,15 @@ export class Popopo {
 
   tsoBuildFileUrl(fileId: string): string {
     return tso.buildFileUrl(fileId, this.tsoConfig);
+  }
+
+  // セッション保存/復元
+
+  exportSession(): SessionData {
+    return { idToken: this.token, refreshToken: this._refreshToken, localId: this.localId };
+  }
+
+  importSession(data: SessionData): void {
+    if (data.idToken) this.setToken(data.idToken, data.refreshToken, data.localId);
   }
 }

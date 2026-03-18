@@ -1,6 +1,8 @@
 // TSO (The Seed Online) = VirtualCast のOAuth連携
 // ホロスーツ(アバター)の取得にTSOのAPIを使う
 
+import type { TsoTokenResponse } from "./types.ts";
+
 const DEFAULT_OAUTH_BASE = "https://oauth.dev.seed.virtualcast.jp";
 
 export interface TsoConfig {
@@ -10,14 +12,6 @@ export interface TsoConfig {
   clientSecret?: string;
   redirectUri?: string;
   fetch?: typeof globalThis.fetch;
-}
-
-export interface TsoTokenResponse {
-  accessToken: string;
-  refreshToken?: string;
-  expiresIn: number;
-  tokenType?: string;
-  scope?: string;
 }
 
 function fetcher(cfg?: TsoConfig): typeof globalThis.fetch {
