@@ -14,6 +14,8 @@ import {
 } from "./firestore.ts";
 import * as tso from "./tso.ts";
 import type { TsoConfig } from "./tso.ts";
+import * as algolia from "./algolia.ts";
+import type { AlgoliaConfig, SearchParams, SearchResult, AlgoliaUser, AlgoliaItem, AlgoliaLive } from "./algolia.ts";
 import type { Route } from "./endpoints.ts";
 import type {
   AuthSession, SessionData, PhoneVerificationResult, CoinBalance, TsoTokenResponse,
@@ -288,6 +290,28 @@ export class Popopo {
   // Firestoreのusersコレクション
   async listUsers(params?: { limit?: number; pageToken?: string }) {
     return listDocuments(this.requireToken(), "users", params);
+  }
+
+  // Algolia検索
+
+  searchUsers(params?: SearchParams): Promise<SearchResult<AlgoliaUser>> {
+    return algolia.searchUsers(params);
+  }
+
+  searchItems(params?: SearchParams): Promise<SearchResult<AlgoliaItem>> {
+    return algolia.searchItems(params);
+  }
+
+  searchLives(params?: SearchParams): Promise<SearchResult<AlgoliaLive>> {
+    return algolia.searchLives(params);
+  }
+
+  async *paginateUsers(params?: SearchParams) {
+    yield* algolia.paginateAll<AlgoliaUser>("users", params);
+  }
+
+  async *paginateItems(params?: SearchParams) {
+    yield* algolia.paginateAll<AlgoliaItem>("items", params);
   }
 
   // TSO

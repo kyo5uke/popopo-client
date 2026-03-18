@@ -209,6 +209,25 @@ describe("ライブコメント", () => {
   });
 });
 
+describe("Algolia検索", () => {
+  test("ユーザー検索", async () => {
+    const result = await api.searchUsers({ hitsPerPage: 1 });
+    expect(result.nbHits).toBeGreaterThan(0);
+    expect(result.hits.length).toBe(1);
+  });
+
+  test("商品検索", async () => {
+    const result = await api.searchItems({ hitsPerPage: 1 });
+    expect(result.nbHits).toBeGreaterThan(0);
+    expect(result.hits[0]!.name).toBeTruthy();
+  });
+
+  test("ライブ検索", async () => {
+    const result = await api.searchLives({ hitsPerPage: 1 });
+    expect(result.nbHits).toBeGreaterThan(0);
+  });
+});
+
 describe("セッション", () => {
   test("エクスポート/インポート", () => {
     const exported = api.exportSession();

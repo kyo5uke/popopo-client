@@ -128,6 +128,10 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
     case "live":
       return handleLive(c2, opts);
 
+    // 検索 (Algolia)
+    case "search":
+      return handleSearch(c2, opts);
+
     // コイン
     case "coin":
       if (c2 === "balance") return api.getCoinBalance();
@@ -295,6 +299,24 @@ async function handleLive(sub: string | undefined, opts: Record<string, string>)
   }
 }
 
+async function handleSearch(sub: string | undefined, opts: Record<string, string>): Promise<unknown> {
+  const q = opts["query"] ?? opts["q"] ?? "";
+  const limit = Number(opts["limit"] ?? "10");
+  const page = Number(opts["page"] ?? "0");
+  const params = { query: q, hitsPerPage: limit, page, filters: opts["filters"] };
+
+  switch (sub) {
+    case "users":
+      return api.searchUsers(params);
+    case "items":
+      return api.searchItems(params);
+    case "lives":
+      return api.searchLives(params);
+    default:
+      throw new Error("search users/items/lives を指定してください");
+  }
+}
+
 function printHelp(): void {
   console.log(`popopo-client CLI
 
@@ -325,6 +347,11 @@ function printHelp(): void {
   story --message "..."
   user --user-id
   block --user-id
+
+検索 (Algolia):
+  search users [--query "名前"] [--limit 10]
+  search items [--query "商品名"] [--limit 10]
+  search lives [--query ""] [--limit 10]
 
 フォロー:
   follow --user-id
