@@ -16,6 +16,12 @@ import * as ep from "./endpoints.ts";
 
 export type { ApiResponse, AuthSession, PopopoApiError, CoinBalance, TsoTokenResponse };
 
+export interface SessionData {
+  idToken?: string;
+  refreshToken?: string;
+  localId?: string;
+}
+
 export interface ClientConfig {
   baseUrl?: string;
   apiKey?: string;
@@ -437,6 +443,98 @@ export class Popopo {
 
   report(data: Record<string, unknown>) {
     return this.call(ep.reports.create(), data);
+  }
+
+  // スタンプカード
+
+  stamp(cardId: string) {
+    return this.call(ep.stampCards.stamp(cardId), {});
+  }
+
+  unlockStampLane(cardId: string, laneId: string) {
+    return this.call(ep.stampCards.unlockLane(cardId, laneId), {});
+  }
+
+  claimStampReward(cardId: string, laneId: string, rewardId: string) {
+    return this.call(ep.stampCards.claimReward(cardId, laneId, rewardId), {});
+  }
+
+  // サブスクリプション
+
+  reclaimSubscription(data: Record<string, unknown>) {
+    return this.call(ep.subscription.reclaimIab(), data);
+  }
+
+  // ショップ
+
+  getShopItemShareImage(itemId: string) {
+    return this.call(ep.shop.itemShareImage(itemId), {});
+  }
+
+  // VirtualCast OAuth (API経由)
+
+  getVirtualCastAccessToken() {
+    return this.call(ep.virtualcast.accessToken(), {});
+  }
+
+  virtualCastApiRelay(data: Record<string, unknown>) {
+    return this.call(ep.virtualcast.apiRelay(), data);
+  }
+
+  // 通知
+
+  getNotificationContent(notificationId: string) {
+    return this.call(ep.notifications.deliveryContent(notificationId), {});
+  }
+
+  // ユーザー設定
+
+  getUserSettings(targetUserId: string) {
+    return this.call(ep.users.userSettings(targetUserId), {});
+  }
+
+  updateUserSettings(targetUserId: string, data: Record<string, unknown>) {
+    return this.call(ep.users.userSettings(targetUserId), data);
+  }
+
+  getSpaceSetting(spaceKey: string) {
+    return this.call(ep.users.spaceSetting(spaceKey), {});
+  }
+
+  updateSpaceSetting(spaceKey: string, data: Record<string, unknown>) {
+    return this.call(ep.users.spaceSetting(spaceKey), data);
+  }
+
+  getSelfIntro(templateId: string) {
+    return this.call(ep.users.selfIntro(templateId), {});
+  }
+
+  updateSelfIntro(templateId: string, data: Record<string, unknown>) {
+    return this.call(ep.users.selfIntro(templateId), data);
+  }
+
+  getInventory(itemId: string) {
+    return this.call(ep.users.inventory(itemId), {});
+  }
+
+  useFriendInvite(inviteKey: string) {
+    return this.call(ep.users.useFriendInvite(inviteKey), {});
+  }
+
+  // セッション保存/復元
+
+  exportSession(): SessionData {
+    return {
+      idToken: this.token,
+      refreshToken: this._refreshToken,
+      localId: this.localId,
+    };
+  }
+
+  importSession(data: SessionData): void {
+    if (data.idToken) {
+      this.setToken(data.idToken, data.refreshToken, data.localId);
+    }
   }
 
   // TSO (VirtualCast/TheSeedOnline)

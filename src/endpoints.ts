@@ -116,6 +116,15 @@ export const stampCards = {
     route("POST", `/api/v2/stamp-cards/${e(cardId)}/stamp-lanes/${e(laneId)}/stamp-lane-rewards/${e(rewardId)}/stamp-reward-claims`),
 } as const;
 
+export const virtualcast = {
+  accessToken: () => route("POST", "/api/v2/users/me/oauth/virtualcast/access-token"),
+  apiRelay: () => route("POST", "/api/v2/users/me/oauth/virtualcast/api-relay"),
+} as const;
+
+export const notifications = {
+  deliveryContent: (id: string) => route("POST", `/api/v2/personal-notifications/${e(id)}/delivery-content`),
+} as const;
+
 export const invites = {
   byKey: (key: string) => route("POST", `/api/v2/invites/${e(key)}`),
   accept: (key: string) => route("POST", `/api/v2/invites/${e(key)}/accept`),

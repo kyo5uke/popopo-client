@@ -1,12 +1,16 @@
 {
-  "name": "popopo-api",
-  "version": "0.1.0",
-  "description": "Unofficial POPOPO API client",
+  "name": "popopo-client",
+  "version": "0.2.0",
+  "description": "POPOPO（ぽぽぽ）の非公式APIクライアント",
   "type": "module",
   "exports": "./src/index.ts",
+  "bin": {
+    "popopo": "./cli/index.ts"
+  },
   "scripts": {
     "check": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "cli": "bun run cli/index.ts"
   },
   "devDependencies": {
     "@types/bun": "latest",

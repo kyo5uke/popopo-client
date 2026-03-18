@@ -1,5 +1,5 @@
 export { Popopo } from "./client.ts";
-export type { ClientConfig, ApiResponse, AuthSession, CoinBalance, TsoTokenResponse } from "./client.ts";
+export type { ClientConfig, ApiResponse, AuthSession, CoinBalance, TsoTokenResponse, SessionData } from "./client.ts";
 export { PopopoApiError } from "./request.ts";
 export { AuthError } from "./auth.ts";
 export * as endpoints from "./endpoints.ts";
