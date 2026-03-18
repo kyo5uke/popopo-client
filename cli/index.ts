@@ -93,34 +93,34 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
 
     // ユーザー
     case "profile":
-      if (c2 === "update") return api.updateProfile(JSON.parse(require(opts, "data")));
-      return api.getProfile();
+      if (c2 === "update") return api.users.updateProfile(JSON.parse(require(opts, "data")));
+      return api.users.getProfile();
     case "terms":
-      return api.agreeTerms(require(opts, "kind") as "terms-of-service" | "privacy");
+      return api.users.agreeTerms(require(opts, "kind") as "terms-of-service" | "privacy");
     case "birthday":
-      return api.setBirthday(Number(require(opts, "year")), Number(require(opts, "month")), Number(require(opts, "day")));
+      return api.users.setBirthday(Number(require(opts, "year")), Number(require(opts, "month")), Number(require(opts, "day")));
     case "tutorial":
-      return api.updateTutorial(Number(require(opts, "version")), Number(require(opts, "step")), opts["completed"] === "true");
+      return api.users.updateTutorial(Number(require(opts, "version")), Number(require(opts, "step")), opts["completed"] === "true");
     case "geo":
-      return api.getGeo();
+      return api.users.getGeo();
     case "story":
-      return api.postStory(require(opts, "message"));
+      return api.users.postStory(require(opts, "message"));
     case "block":
-      return api.blockUser(require(opts, "user-id"));
+      return api.users.blockUser(require(opts, "user-id"));
     case "user":
-      return api.getUser(require(opts, "user-id"));
+      return api.users.getUser(require(opts, "user-id"));
 
     // フォロー
     case "follow":
-      return api.follow(require(opts, "user-id"));
+      return api.social.follow(require(opts, "user-id"));
     case "unfollow":
-      return api.unfollow(require(opts, "user-id"));
+      return api.social.unfollow(require(opts, "user-id"));
     case "followers":
-      return api.getFollowers(require(opts, "user-id"));
+      return api.social.getFollowers(require(opts, "user-id"));
 
     // スペース
     case "home":
-      return api.getHomeSpaces();
+      return api.users.getHomeSpaces();
     case "space":
       return handleSpace(c2, c3, opts);
 
@@ -131,30 +131,30 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
     // コイン
     case "coin":
       if (c2 === "balance") return api.getCoinBalance();
-      if (c2 === "history") return api.getCoinTransactions();
-      if (c2 === "expirations") return api.getCoinExpirations();
-      return api.getCoinTransactions();
+      if (c2 === "history") return api.store.getCoinTransactions();
+      if (c2 === "expirations") return api.store.getCoinExpirations();
+      return api.store.getCoinTransactions();
 
     // 招待
     case "invite":
-      if (c2 === "accept") return api.acceptInvite(require(opts, "key"));
-      if (c2 === "friend") return api.createFriendInvite(Number(opts["limit"] ?? "10"), Math.floor(Date.now() / 1000) + 86400);
-      return api.getInvite(require(opts, "key"));
+      if (c2 === "accept") return api.social.acceptInvite(require(opts, "key"));
+      if (c2 === "friend") return api.users.createFriendInvite(Number(opts["limit"] ?? "10"), Math.floor(Date.now() / 1000) + 86400);
+      return api.social.getInvite(require(opts, "key"));
 
     // デバイス
     case "device":
-      if (c2 === "register") return api.registerDevice(require(opts, "id"), JSON.parse(require(opts, "data")));
-      if (c2 === "unregister") return api.unregisterDevice(require(opts, "id"));
+      if (c2 === "register") return api.device.registerDevice(require(opts, "id"), JSON.parse(require(opts, "data")));
+      if (c2 === "unregister") return api.device.unregisterDevice(require(opts, "id"));
       break;
 
     // 通報
     case "report":
-      return api.report(JSON.parse(require(opts, "data")));
+      return api.social.report(JSON.parse(require(opts, "data")));
 
     // VirtualCast
     case "vc":
-      if (c2 === "token") return api.getVirtualCastAccessToken();
-      if (c2 === "relay") return api.virtualCastApiRelay(JSON.parse(require(opts, "data")));
+      if (c2 === "token") return api.device.getVirtualCastAccessToken();
+      if (c2 === "relay") return api.device.virtualCastApiRelay(JSON.parse(require(opts, "data")));
       break;
 
     // TSO
@@ -165,15 +165,15 @@ async function run(cmd: string[], opts: Record<string, string>): Promise<unknown
 
     // スタンプ
     case "stamp":
-      if (c2 === "press") return api.stamp(require(opts, "card-id"));
-      if (c2 === "unlock") return api.unlockStampLane(require(opts, "card-id"), require(opts, "lane-id"));
-      if (c2 === "claim") return api.claimStampReward(require(opts, "card-id"), require(opts, "lane-id"), require(opts, "reward-id"));
+      if (c2 === "press") return api.store.stamp(require(opts, "card-id"));
+      if (c2 === "unlock") return api.store.unlockStampLane(require(opts, "card-id"), require(opts, "lane-id"));
+      if (c2 === "claim") return api.store.claimStampReward(require(opts, "card-id"), require(opts, "lane-id"), require(opts, "reward-id"));
       break;
 
     // push
     case "push":
-      if (c2 === "call") return api.sendCallPush(JSON.parse(require(opts, "data")));
-      if (c2 === "cancel") return api.cancelCallPush(require(opts, "id"));
+      if (c2 === "call") return api.device.sendCallPush(JSON.parse(require(opts, "data")));
+      if (c2 === "cancel") return api.device.cancelCallPush(require(opts, "id"));
       break;
 
     // 低レベル
@@ -246,28 +246,28 @@ async function handleSpace(sub: string | undefined, sub2: string | undefined, op
   const key = opts["key"] ?? opts["space-key"];
   switch (sub) {
     case "create":
-      return api.createSpace(JSON.parse(require(opts, "data")));
+      return api.spaces.createSpace(JSON.parse(require(opts, "data")));
     case "update":
-      return api.updateSpace(key!, JSON.parse(require(opts, "data")));
+      return api.spaces.updateSpace(key!, JSON.parse(require(opts, "data")));
     case "connect":
-      return api.connectSpace(key!, opts["muted"] === "true");
+      return api.spaces.connectSpace(key!, opts["muted"] === "true");
     case "disconnect":
-      return api.disconnectSpace(key!);
+      return api.spaces.disconnectSpace(key!);
     case "mute":
-      return api.setMuted(key!, true);
+      return api.spaces.setMuted(key!, true);
     case "unmute":
-      return api.setMuted(key!, false);
+      return api.spaces.setMuted(key!, false);
     case "message":
-      return api.sendMessage(key!, "text", require(opts, "text"));
+      return api.spaces.sendMessage(key!, "text", require(opts, "text"));
     case "invite":
-      return api.createSpaceInvite(key!, Number(opts["limit"] ?? "10"), Math.floor(Date.now() / 1000) + Number(opts["ttl"] ?? "86400"));
+      return api.spaces.createSpaceInvite(key!, Number(opts["limit"] ?? "10"), Math.floor(Date.now() / 1000) + Number(opts["ttl"] ?? "86400"));
     case "connection-info":
-      return api.getConnectionInfo(key!);
+      return api.spaces.getConnectionInfo(key!);
     case "background":
-      if (opts["data"]) return api.setBackground(key!, JSON.parse(opts["data"]));
+      if (opts["data"]) return api.spaces.setBackground(key!, JSON.parse(opts["data"]));
       break;
     case "bgm":
-      if (opts["data"]) return api.setBgm(key!, JSON.parse(opts["data"]));
+      if (opts["data"]) return api.spaces.setBgm(key!, JSON.parse(opts["data"]));
       break;
     default:
       throw new Error(`不明なスペースコマンド: ${sub}`);
@@ -279,17 +279,17 @@ async function handleLive(sub: string | undefined, opts: Record<string, string>)
   const liveId = opts["live-id"];
   switch (sub) {
     case "list":
-      return api.getLives(key);
+      return api.lives.getLives(key);
     case "get":
-      return api.getLive(key, liveId!);
+      return api.lives.getLive(key, liveId!);
     case "comment":
-      return api.postComment(key, liveId!, require(opts, "text"));
+      return api.lives.postComment(key, liveId!, require(opts, "text"));
     case "reaction":
-      return api.sendReaction(key, liveId!, { type: opts["type"] ?? "heart" });
+      return api.lives.sendReaction(key, liveId!, { type: opts["type"] ?? "heart" });
     case "power":
-      return api.sendPower(key, liveId!, JSON.parse(require(opts, "data")));
+      return api.lives.sendPower(key, liveId!, JSON.parse(require(opts, "data")));
     case "selections":
-      return api.getSelections(key, liveId!);
+      return api.lives.getSelections(key, liveId!);
     default:
       throw new Error(`不明なライブコマンド: ${sub}`);
   }

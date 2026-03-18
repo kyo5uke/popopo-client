@@ -3,12 +3,12 @@ import { Popopo } from "../src/index.ts";
 
 const api = new Popopo();
 await api.loginAnonymous();
-await api.createAccount();
-await api.agreeTerms("terms-of-service");
-await api.agreeTerms("privacy");
+await api.users.createAccount();
+await api.users.agreeTerms("terms-of-service");
+await api.users.agreeTerms("privacy");
 
 const check = async () => {
-  const home = await api.getHomeSpaces();
+  const home = await api.users.getHomeSpaces();
   const now = new Date().toLocaleTimeString("ja-JP");
   const livesCount = home.spaces.filter((s) => s.live).length;
 
