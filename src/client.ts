@@ -1,14 +1,25 @@
-import type { AuthSession, AuthOptions } from "./auth.ts";
-import { signInAnonymously, signInWithEmail, signUpWithEmail, refreshToken } from "./auth.ts";
+import type { AuthSession, AuthOptions, PhoneVerificationResult } from "./auth.ts";
+import {
+  signInAnonymously, signInWithEmail, signUpWithEmail,
+  signInWithCustomToken, signInWithIdp, signInWithEmailLink,
+  signInWithPhoneNumber, sendPhoneVerificationCode, sendSignInLink,
+  linkWithIdp, linkWithPhoneNumber,
+  lookupAccount, updateFirebaseProfile, unlinkProvider,
+  refreshToken,
+} from "./auth.ts";
 import { request, type RequestConfig, type ApiResponse, PopopoApiError } from "./request.ts";
+import { getCoinBalance, getDocument, type CoinBalance, type FirestoreDoc } from "./firestore.ts";
+import * as tso from "./tso.ts";
+import type { TsoConfig, TsoTokenResponse } from "./tso.ts";
 import type { Route } from "./endpoints.ts";
 import * as ep from "./endpoints.ts";
 
-export type { ApiResponse, AuthSession, PopopoApiError };
+export type { ApiResponse, AuthSession, PopopoApiError, CoinBalance, TsoTokenResponse };
 
 export interface ClientConfig {
   baseUrl?: string;
   apiKey?: string;
+  tso?: TsoConfig;
   fetch?: typeof globalThis.fetch;
 }
 
@@ -20,6 +31,7 @@ export class Popopo {
   private localId?: string;
   private readonly config: RequestConfig;
   private readonly authOpts: AuthOptions;
+  private readonly tsoConfig: TsoConfig;
 
   constructor(opts: ClientConfig = {}) {
     this.config = {
@@ -30,10 +42,15 @@ export class Popopo {
       apiKey: opts.apiKey,
       fetch: opts.fetch,
     };
+    this.tsoConfig = { ...opts.tso, fetch: opts.fetch };
   }
 
   get userId(): string | undefined {
     return this.localId;
+  }
+
+  get idToken(): string | undefined {
+    return this.token;
   }
 
   get isLoggedIn(): boolean {
@@ -54,34 +71,144 @@ export class Popopo {
     this.config.token = undefined;
   }
 
-  async loginAnonymous(): Promise<AuthSession> {
-    const session = await signInAnonymously(this.authOpts);
-    this.applySession(session);
-    return session;
-  }
-
-  async loginEmail(email: string, password: string): Promise<AuthSession> {
-    const session = await signInWithEmail(email, password, this.authOpts);
-    this.applySession(session);
-    return session;
-  }
-
-  async signupEmail(email: string, password: string): Promise<AuthSession> {
-    const session = await signUpWithEmail(email, password, this.authOpts);
-    this.applySession(session);
-    return session;
-  }
-
-  async refresh(): Promise<AuthSession> {
-    if (!this._refreshToken) throw new Error("No refresh token available");
-    const session = await refreshToken(this._refreshToken, this.authOpts);
-    this.applySession(session);
-    return session;
-  }
-
   private applySession(session: AuthSession): void {
     this.setToken(session.idToken, session.refreshToken, session.localId);
   }
+
+  private requireToken(): string {
+    if (!this.token) throw new Error("ログインしていません");
+    return this.token;
+  }
+
+  private requireUserId(): string {
+    if (!this.localId) throw new Error("ログインしていません");
+    return this.localId;
+  }
+
+  // 認証 - ログイン
+
+  async loginAnonymous(): Promise<AuthSession> {
+    const s = await signInAnonymously(this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginEmail(email: string, password: string): Promise<AuthSession> {
+    const s = await signInWithEmail(email, password, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async signupEmail(email: string, password: string): Promise<AuthSession> {
+    const s = await signUpWithEmail(email, password, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginCustomToken(token: string): Promise<AuthSession> {
+    const s = await signInWithCustomToken(token, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginGoogle(credentials: { idToken?: string; accessToken?: string }): Promise<AuthSession> {
+    const s = await signInWithIdp("google.com", credentials, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginApple(credentials: { idToken?: string; nonce?: string }): Promise<AuthSession> {
+    const s = await signInWithIdp("apple.com", credentials, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginFacebook(accessToken: string): Promise<AuthSession> {
+    const s = await signInWithIdp("facebook.com", { accessToken }, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginTwitter(accessToken: string): Promise<AuthSession> {
+    const s = await signInWithIdp("twitter.com", { accessToken }, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async loginGitHub(accessToken: string): Promise<AuthSession> {
+    const s = await signInWithIdp("github.com", { accessToken }, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async sendPhoneCode(phoneNumber: string): Promise<PhoneVerificationResult> {
+    return sendPhoneVerificationCode(phoneNumber, this.authOpts);
+  }
+
+  async loginPhone(sessionInfo: string, code: string): Promise<AuthSession> {
+    const s = await signInWithPhoneNumber(sessionInfo, code, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async sendEmailLink(email: string, continueUrl: string): Promise<void> {
+    return sendSignInLink(email, continueUrl, this.authOpts);
+  }
+
+  async loginEmailLink(email: string, oobCode: string): Promise<AuthSession> {
+    const s = await signInWithEmailLink(email, oobCode, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async refresh(): Promise<AuthSession> {
+    if (!this._refreshToken) throw new Error("リフレッシュトークンがありません");
+    const s = await refreshToken(this._refreshToken, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  // 認証 - アカウント管理
+
+  async linkGoogle(credentials: { idToken?: string; accessToken?: string }): Promise<AuthSession> {
+    const s = await linkWithIdp(this.requireToken(), "google.com", credentials, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async linkApple(credentials: { idToken?: string; nonce?: string }): Promise<AuthSession> {
+    const s = await linkWithIdp(this.requireToken(), "apple.com", credentials, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async linkFacebook(accessToken: string): Promise<AuthSession> {
+    const s = await linkWithIdp(this.requireToken(), "facebook.com", { accessToken }, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async linkPhone(sessionInfo: string, code: string): Promise<AuthSession> {
+    const s = await linkWithPhoneNumber(this.requireToken(), sessionInfo, code, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  async unlinkProvider(providerId: string): Promise<void> {
+    return unlinkProvider(this.requireToken(), providerId, this.authOpts);
+  }
+
+  async getAccountInfo(): Promise<Record<string, unknown>> {
+    return lookupAccount(this.requireToken(), this.authOpts);
+  }
+
+  async updateFirebaseProfile(profile: { displayName?: string; photoUrl?: string }): Promise<AuthSession> {
+    const s = await updateFirebaseProfile(this.requireToken(), profile, this.authOpts);
+    this.applySession(s);
+    return s;
+  }
+
+  // API呼び出し
 
   async call<T = unknown>(route: Route, body?: unknown): Promise<T> {
     const res = await request<T>(this.config, route.method, route.path, body);
@@ -114,8 +241,8 @@ export class Popopo {
     return this.call(ep.users.friendCode(), {});
   }
 
-  setBirthday(data: Record<string, unknown>) {
-    return this.call(ep.users.birthday(), data);
+  setBirthday(year: number, month: number, day: number) {
+    return this.call(ep.users.birthday(), { year, month, day });
   }
 
   getPushSetting() {
@@ -126,20 +253,20 @@ export class Popopo {
     return this.call(ep.users.pushSetting(), data);
   }
 
-  updateTutorial(data: Record<string, unknown>) {
-    return this.call(ep.users.tutorial(), data);
+  updateTutorial(version: number, step: number, completed: boolean) {
+    return this.call(ep.users.tutorial(), { version, step, completed });
   }
 
-  agreeTerms(data: Record<string, unknown>) {
-    return this.call(ep.users.termsAgreements(), data);
+  agreeTerms(kind: "terms-of-service" | "privacy") {
+    return this.call(ep.users.termsAgreements(), { kind });
   }
 
   getGeo() {
     return this.call(ep.users.geo(), {});
   }
 
-  getHomeSpaces() {
-    return this.call(ep.users.homeDisplaySpaces(), {});
+  getHomeSpaces(data: Record<string, unknown> = {}) {
+    return this.call(ep.users.homeDisplaySpaces(), data);
   }
 
   getUser(userId: string) {
@@ -148,6 +275,14 @@ export class Popopo {
 
   blockUser(userId: string) {
     return this.call(ep.users.blockUser(userId), {});
+  }
+
+  postStory(message: string) {
+    return this.call(ep.users.stories(), { message });
+  }
+
+  createFriendInvite(limit: number, expiredAtSeconds: number) {
+    return this.call(ep.users.friendInvites(), { limit, expiredAtSeconds });
   }
 
   // フォロー
@@ -246,7 +381,7 @@ export class Popopo {
     return this.call(ep.selections.participate(spaceKey, liveId, selectionId), {});
   }
 
-  // コイン
+  // コイン (API経由)
 
   getCoinTransactions() {
     return this.call(ep.coin.transactions());
@@ -258,6 +393,16 @@ export class Popopo {
 
   reclaimCoinPurchase(data: Record<string, unknown>) {
     return this.call(ep.coin.reclaimIab(), data);
+  }
+
+  // コイン (Firestore経由 - 残高取得)
+
+  async getCoinBalance(): Promise<CoinBalance> {
+    return getCoinBalance(this.requireToken(), this.requireUserId());
+  }
+
+  async getFirestoreDoc(collection: string, docId: string): Promise<FirestoreDoc> {
+    return getDocument(this.requireToken(), collection, docId);
   }
 
   // プッシュ通知
@@ -274,6 +419,10 @@ export class Popopo {
     return this.call(ep.push.registerDevice(deviceId), data);
   }
 
+  unregisterDevice(deviceId: string) {
+    return this.call(ep.push.unregisterDevice(deviceId));
+  }
+
   // 招待
 
   getInvite(key: string) {
@@ -288,5 +437,23 @@ export class Popopo {
 
   report(data: Record<string, unknown>) {
     return this.call(ep.reports.create(), data);
+  }
+
+  // TSO (VirtualCast/TheSeedOnline)
+
+  async tsoExchangeCode(code: string, codeVerifier: string): Promise<TsoTokenResponse> {
+    return tso.exchangeAuthorizationCode(code, codeVerifier, this.tsoConfig);
+  }
+
+  async tsoRefreshToken(refreshToken: string): Promise<TsoTokenResponse> {
+    return tso.refreshAccessToken(refreshToken, this.tsoConfig);
+  }
+
+  async tsoGetFileStatus(fileId: string, accessToken: string): Promise<Record<string, unknown>> {
+    return tso.getFileStatus(fileId, accessToken, this.tsoConfig);
+  }
+
+  tsoBuildFileUrl(fileId: string): string {
+    return tso.buildFileUrl(fileId, this.tsoConfig);
   }
 }

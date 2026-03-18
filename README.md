@@ -4,9 +4,12 @@ POPOPO (ぽぽぽ) の非公式APIクライアント。
 
 ## 特徴
 
-- Firebase認証（匿名 / メール / トークンリフレッシュ）
+- Firebase認証フル対応（匿名 / メール / Google / Apple / Facebook / Twitter / GitHub / 電話番号 / メールリンク）
+- OAuthプロバイダのリンク/アンリンク
+- Firestoreからコイン残高を直接取得
+- TSO (VirtualCast/TheSeedOnline) OAuth連携
 - 75以上のAPIエンドポイントに対応
-- 正確なHTTPメソッドマッピング（このAPIはGETをほぼ使わない非標準設計）
+- 全エンドポイント実機検証済みのHTTPメソッドマッピング（このAPIはGETをほぼ使わない非標準設計）
 - TypeScript / Bun
 
 ## インストール
@@ -43,12 +46,48 @@ await api.loginAnonymous();
 
 // メール
 await api.loginEmail("user@example.com", "password");
+await api.signupEmail("new@example.com", "password");
+
+// OAuth (Google / Apple / Facebook / Twitter / GitHub)
+await api.loginGoogle({ idToken: "..." });
+await api.loginApple({ idToken: "...", nonce: "..." });
+await api.loginFacebook("access_token");
+
+// 電話番号
+const { sessionInfo } = await api.sendPhoneCode("+819012345678");
+await api.loginPhone(sessionInfo, "123456");
+
+// メールリンク
+await api.sendEmailLink("user@example.com", "https://popopo.com/callback");
+await api.loginEmailLink("user@example.com", "oobCode");
+
+// カスタムトークン
+await api.loginCustomToken("server-issued-token");
 
 // トークンリフレッシュ
 await api.refresh();
 
-// 外部トークン (他の認証フローで取得済みの場合)
-api.setToken(idToken, refreshToken, localId);
+// プロバイダのリンク/アンリンク
+await api.linkGoogle({ idToken: "..." });
+await api.unlinkProvider("google.com");
+
+// アカウント情報
+const info = await api.getAccountInfo();
+```
+
+### コイン残高 (Firestore直接取得)
+
+```typescript
+const balance = await api.getCoinBalance();
+console.log(balance.paid, balance.free);
+```
+
+### TSO (VirtualCast) 連携
+
+```typescript
+const tokens = await api.tsoExchangeCode(code, codeVerifier);
+const refreshed = await api.tsoRefreshToken(tokens.refreshToken);
+const url = api.tsoBuildFileUrl("file-id");
 ```
 
 ### スペース・通話
