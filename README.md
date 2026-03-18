@@ -1,4 +1,4 @@
-# popopo-api
+# popopo-client
 
 POPOPO (ぽぽぽ) の非公式APIクライアント。
 
