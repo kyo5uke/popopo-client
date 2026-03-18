@@ -8,7 +8,10 @@ import {
   refreshToken,
 } from "./auth.ts";
 import { request, type RequestConfig, PopopoApiError } from "./request.ts";
-import { getCoinBalance, getDocument, type FirestoreDoc } from "./firestore.ts";
+import {
+  getCoinBalance, getDocument, listDocuments, listSpaceMessages, listLiveComments,
+  type FirestoreDoc, type ParsedMessage, type ParsedComment,
+} from "./firestore.ts";
 import * as tso from "./tso.ts";
 import type { TsoConfig } from "./tso.ts";
 import type { Route } from "./endpoints.ts";
@@ -358,12 +361,30 @@ export class Popopo {
     return this.call(ep.lives.byId(spaceKey, liveId), {});
   }
 
+  startLive(spaceKey: string, genreId: string, tags: string[] = [], canEnter = true) {
+    return this.call(ep.lives.start(spaceKey), { genreId, tags, canEnter });
+  }
+
   getComments(spaceKey: string, liveId: string) {
     return this.call(ep.lives.comments(spaceKey, liveId), {});
   }
 
   postComment(spaceKey: string, liveId: string, value: string) {
     return this.call(ep.lives.comments(spaceKey, liveId), { kind: "text", value });
+  }
+
+  // Firestore経由のコメント/メッセージ一覧（ページネーション付き）
+
+  async listComments(spaceKey: string, liveId: string, params?: { limit?: number; pageToken?: string }) {
+    return listLiveComments(this.requireToken(), spaceKey, liveId, params);
+  }
+
+  async listMessages(spaceKey: string, params?: { limit?: number; pageToken?: string }) {
+    return listSpaceMessages(this.requireToken(), spaceKey, params);
+  }
+
+  async listFirestoreCollection(path: string, params?: { limit?: number; orderBy?: string; pageToken?: string }) {
+    return listDocuments(this.requireToken(), path, params);
   }
 
   deleteComment(spaceKey: string, liveId: string, commentId: string) {

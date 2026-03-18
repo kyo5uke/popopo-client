@@ -64,6 +64,7 @@ export const spaces = {
 } as const;
 
 export const lives = {
+  start: (spaceKey: string) => route("POST", `/api/v2/spaces/${e(spaceKey)}/lives`),
   list: (spaceKey: string) => route("POST", `/api/v2/spaces/${e(spaceKey)}/lives`),
   byId: (spaceKey: string, liveId: string) => route("POST", `/api/v2/spaces/${e(spaceKey)}/lives/${e(liveId)}`),
   comments: (spaceKey: string, liveId: string) => route("POST", `/api/v2/spaces/${e(spaceKey)}/lives/${e(liveId)}/comments`),
